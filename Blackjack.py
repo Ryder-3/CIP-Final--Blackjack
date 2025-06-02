@@ -20,7 +20,7 @@ def main():
             for rank in ranks:
                 deck.append(Card(suit, rank))
     # Now that we have a shoe, we need to deal cards to both the player and dealer. We also need to give the user both their score and the dealer's score
-
+    
     
 
     
