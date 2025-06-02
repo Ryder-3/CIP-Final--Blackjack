@@ -42,7 +42,11 @@ def main():
 
     lost = False
     won = False
-
+    print("Welcome to Blackjack!")
+    seed = random.randint(0,2**32 - 1)
+    random.seed(seed)
+    print("For testing, the seed of this run is", seed, ".")
+    
     while playing == True:
 
         #setting up the round
@@ -59,43 +63,119 @@ def main():
             if card:
                 player_hand.append(card)
 
-        #update the player score and dealer score
-        player_score = calculate_player_score(player_hand)
-        dealer_score = calculate_dealer_score(dealer_hand)
-
-
-
-        print("Welcome to Blackjack!")
-        print("The dealer is showing: ", dealer_hand[0])
-
-        print(f"Your hand: {player_hand} | Your score: {player_score}")
-
-
-        #giving the player their hand and choices
-        player_stand = False
-        #player gameplay
-        while player_stand == False:
-            if player_score > 21:
-                print("You busted! Dealer wins.")
-                player_stand = True
-                lost = True
-                break
-            elif player_score == 21:
-                print("Blackjack! You win!")
-                player_stand = True
-                won = True
-                break
-            player_choice = input("Do you want to Hit or Stand? ")
-            if player_choice.lower() == 'hit':
+        #checking if the player can split
+        if player_hand[0].rank == player_hand[1].rank:
+            split_choice = input(f"You have a pair of {player_hand[0].rank}'s Do you want to split? (yes/no) ")
+            if split_choice.lower() == 'yes':
+                # Split the hand into two hands
+                player_hand_1 = [player_hand[0]]
                 card, temp_pass_cut = deal_card(shoe)
                 if temp_pass_cut == True:
                     passed_cut_card = True
                 if card:
-                    player_hand.append(card)
-                    player_score = calculate_player_score(player_hand)
-                    print(f"Your hand: {player_hand} | Your score: {player_score}")
-            elif player_choice.lower() == 'stand':
-                player_stand = True
+                    player_hand_1.append(card)
+
+
+                player_hand_2 = [player_hand[1]]
+                card, temp_pass_cut = deal_card(shoe)
+                if temp_pass_cut == True:
+                    passed_cut_card = True
+                if card:
+                    player_hand_2.append(card)
+                    
+                player_score_1 = calculate_player_score(player_hand_1)
+                player_score_2 = calculate_player_score(player_hand_2)
+
+            else:
+                player_hand_1 = player_hand
+                player_score_1 = calculate_player_score(player_hand_1)
+        else:
+            split_choice = 'no'
+        
+        if split_choice.lower() != 'yes':
+            player_score = calculate_player_score(player_hand)
+            dealer_score = calculate_dealer_score(dealer_hand)
+    
+            print("The dealer is showing: ", dealer_hand[0])
+
+            print(f"Your hand: {player_hand} | Your score: {player_score}")
+
+            #giving the player their hand and choices
+            player_stand = False
+            #player gameplay
+            while player_stand == False:
+                if player_score > 21:
+                    print("You busted! Dealer wins.")
+                    player_stand = True
+                    lost = True
+                    break
+                elif player_score == 21:
+                    print("Blackjack! You win!")
+                    player_stand = True
+                    won = True
+                    break
+                player_choice = input("Do you want to Hit or Stand? ")
+                if player_choice.lower() == 'hit':
+                    card, temp_pass_cut = deal_card(shoe)
+                    if temp_pass_cut == True:
+                        passed_cut_card = True
+                    if card:
+                        player_hand.append(card)
+                        player_score = calculate_player_score(player_hand)
+                        print(f"Your hand: {player_hand} | Your score: {player_score}")
+                elif player_choice.lower() == 'stand':
+                    player_stand = True
+        else:
+            print(f"Your first hand: {player_hand_1} | Your score: {player_score_1}")
+            player_stand_1 = False
+            #player gameplay for first hand
+            while player_stand_1 == False:
+                if player_score_1 > 21:
+                    print("You busted! Dealer wins.")
+                    player_stand_1 = True
+                    lost = True
+                    break
+                elif player_score_1 == 21:
+                    print("Blackjack! You win!")
+                    player_stand_1 = True
+                    won_1 = True
+                    break
+                player_choice = input("Do you want to Hit or Stand? ")
+                if player_choice.lower() == 'hit':
+                    card, temp_pass_cut = deal_card(shoe)
+                    if temp_pass_cut == True:
+                        passed_cut_card = True
+                    if card:
+                        player_hand_1.append(card)
+                        player_score_1 = calculate_player_score(player_hand_1)
+                        print(f"Your hand: {player_hand_1} | Your score: {player_score_1}")
+                elif player_choice.lower() == 'stand':
+                    player_stand_1 = True
+            print(f"Your second hand: {player_hand_2} | Your score: {player_score_2}")
+            player_stand_2 = False
+            #player gameplay for second hand
+            while player_stand_2 == False:
+                if player_score_2 > 21:
+                    print("You busted! Dealer wins.")
+                    player_stand_2 = True
+                    lost = True
+                    break
+                elif player_score_2 == 21:
+                    print("Blackjack! You win!")
+                    player_stand_2 = True
+                    won_2 = True
+                    break
+                player_choice = input("Do you want to Hit or Stand? ")
+                if player_choice.lower() == 'hit':
+                    card, temp_pass_cut = deal_card(shoe)
+                    if temp_pass_cut == True:
+                        passed_cut_card = True
+                    if card:
+                        player_hand_2.append(card)
+                        player_score_2 = calculate_player_score(player_hand_2)
+                        print(f"Your hand: {player_hand_2} | Your score: {player_score_2}")
+                elif player_choice.lower() == 'stand':
+                    player_stand_2 = True
         
 
         #dealer gameplay
@@ -126,20 +206,13 @@ def main():
         elif won:
             print(f"You won this round! Dealer's final hand: {dealer_hand}")
 
-
-
-
-
         # Reset hands and scores for the next round
         player_hand = []
         dealer_hand = []
         player_score = 0
         dealer_score = 0
         lost = False
-        
-        
 
-        
         # Reset the shoe if the cut card has been passed
         if passed_cut_card:
             shoe = set_up_shoe(deck)
@@ -185,4 +258,3 @@ def set_up_shoe(set_shoe):
 
 if __name__ == '__main__':
     main()
-
