@@ -167,7 +167,7 @@ def calculate_dealer_score(dealer_hand):
 
 def deal_card(shoe):
     if shoe[-1] != 'Cut Card':
-        return shoe.pop(), False``
+        return shoe.pop(), False
     else:
         shoe.pop()
         print("Cut card has been reached. This is the last hand of the shoe.")
