@@ -24,6 +24,13 @@ def main():
     ranks = ['A'] + [str(n) for n in range(2, 11)] + ['J', 'Q', 'K']
 
 
+    # Betting logic
+    player_balance = input("Choose your starting balance: (out of 50, 100, or 150) ")
+    while player_balance not in ['50', '100', '150']:
+        player_balance = input("Invalid choice. Please choose your starting balance: (out of 50, 100, or 150) ")
+    player_balance = int(player_balance)
+
+
     for i in range(8):
         for suit in suits:
             for rank in ranks:
@@ -42,12 +49,25 @@ def main():
 
     lost = False
     won = False
+    blackjack = False
+    won_1 = False
+    won_2 = False
+    push = False
     print("Welcome to Blackjack!")
     seed = random.randint(0,2**32 - 1)
     random.seed(seed)
     print("For testing, the seed of this run is", seed, ".")
     
     while playing == True:
+
+
+        #Betting
+        bet = input(f"Your current balance is {player_balance}. How much would you like to bet? ")
+        bet = int(bet)
+        while bet <= 0 or bet > player_balance:
+            bet = input(f"Invalid bet. Please enter a valid amount to bet (between 1 and {player_balance}): ")
+            bet = int(bet)
+        #Betting for split hands is not done at all
 
         #setting up the round
         for i in range(2):
@@ -95,36 +115,41 @@ def main():
         if split_choice.lower() != 'yes':
             player_score = calculate_player_score(player_hand)
             dealer_score = calculate_dealer_score(dealer_hand)
-    
-            print("The dealer is showing: ", dealer_hand[0])
 
-            print(f"Your hand: {player_hand} | Your score: {player_score}")
 
-            #giving the player their hand and choices
-            player_stand = False
-            #player gameplay
-            while player_stand == False:
-                if player_score > 21:
-                    print("You busted! Dealer wins.")
-                    player_stand = True
-                    lost = True
-                    break
-                elif player_score == 21:
-                    print("Blackjack! You win!")
-                    player_stand = True
-                    won = True
-                    break
-                player_choice = input("Do you want to Hit or Stand? ")
-                if player_choice.lower() == 'hit':
-                    card, temp_pass_cut = deal_card(shoe)
-                    if temp_pass_cut == True:
-                        passed_cut_card = True
-                    if card:
-                        player_hand.append(card)
-                        player_score = calculate_player_score(player_hand)
-                        print(f"Your hand: {player_hand} | Your score: {player_score}")
-                elif player_choice.lower() == 'stand':
-                    player_stand = True
+            if player_score == 21:
+                blackjack = True
+            else:
+        
+                print("The dealer is showing: ", dealer_hand[0])
+
+                print(f"Your hand: {player_hand} | Your score: {player_score}")
+
+                #giving the player their hand and choices
+                player_stand = False
+                #player gameplay
+                while player_stand == False:
+                    if player_score > 21:
+                        print("You busted! Dealer wins.")
+                        player_stand = True
+                        lost = True
+                        break
+                    elif player_score == 21:
+                        print("Blackjack! You win!")
+                        player_stand = True
+                        won = True
+                        break
+                    player_choice = input("Do you want to Hit or Stand? ")
+                    if player_choice.lower() == 'hit':
+                        card, temp_pass_cut = deal_card(shoe)
+                        if temp_pass_cut == True:
+                            passed_cut_card = True
+                        if card:
+                            player_hand.append(card)
+                            player_score = calculate_player_score(player_hand)
+                            print(f"Your hand: {player_hand} | Your score: {player_score}")
+                    elif player_choice.lower() == 'stand':
+                        player_stand = True
         else:
             print(f"Your first hand: {player_hand_1} | Your score: {player_score_1}")
             player_stand_1 = False
@@ -180,7 +205,8 @@ def main():
 
         #dealer gameplay
 
-        if lost == False and won == False:
+        if lost == False and won == False and blackjack == False:
+            print("Dealer's turn.")
             while dealer_score < 17:
                 card, temp_pass_cut = deal_card(shoe)
                 if temp_pass_cut == True:
@@ -191,20 +217,32 @@ def main():
                     print(f"Dealer's hand: {dealer_hand} | Dealer's score: {dealer_score}")
                     input("Press Enter to continue...")
             print(f"Dealer's final hand: {dealer_hand} | Dealer's final score: {dealer_score}")
+            input("Press Enter to continue...")
         
-            #determine the winner
+
+        #Winning logic (splits not included)
+        if lost == False and won == False and blackjack == False:
             if dealer_score > 21:
-                print("Dealer busted! You win!")
-            elif player_score > dealer_score:
-                print("You win!")
-            elif player_score < dealer_score:
-                print("Dealer wins!")
+                won = True
+            elif dealer_score == player_score:
+                push = True
+            elif dealer_score > player_score:
+                lost = True
             else:
-                print("Push!")
-        elif lost:
-            print(f"You lost this round. Dealer's final hand: {dealer_hand}")
+                won = True
+
+        #Paying out bets
+        if blackjack:
+            player_balance += int(bet * 1.5)
+            print(f"You won {int(bet * 1.5)}! Your new balance is {player_balance}.")
         elif won:
-            print(f"You won this round! Dealer's final hand: {dealer_hand}")
+            player_balance += bet
+            print(f"You won {bet}! Your new balance is {player_balance}.")
+        elif lost:
+            player_balance -= bet
+            print(f"You lost {bet}. Your new balance is {player_balance}.")
+        elif push:
+            print(f"It's a push! Your balance remains {player_balance}.")
 
         # Reset hands and scores for the next round
         player_hand = []
@@ -212,6 +250,11 @@ def main():
         player_score = 0
         dealer_score = 0
         lost = False
+        won = False
+        push = False
+        blackjack = False
+        won_1 = False
+        won_2 = False
 
         # Reset the shoe if the cut card has been passed
         if passed_cut_card:
@@ -220,9 +263,13 @@ def main():
             print("The shoe has been reshuffled.")
         
         # Ask if the player wants to play again
+        if player_balance <= 0:
+            print("You have run out of money! Thanks for playing!")
+            break
         play_again = input("Do you want to play again? (yes/no) ")
         if play_again.lower() == 'no':
             playing = False
+            print(f"Your final balance is {player_balance}.")
             print("Thanks for playing!")
 
 
